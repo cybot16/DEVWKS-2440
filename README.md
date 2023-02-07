@@ -40,7 +40,7 @@
       cisco@ncs# netconf-ned-builder project cisco-iosxr 7.5 module Cisco-IOS-XR-* * select
       cisco@ncs#
  
-  #### h - Verifying selected modules:
+ #### h - Verifying selected modules:
       cisco@ncs# show netconf-ned-builder project cisco-iosxr 7.5 module Cisco-IOS-XR-ifmgr-cfg 2020-10-01
       module Cisco-IOS-XR-ifmgr-cfg 2020-10-01
        namespace http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg
@@ -48,3 +48,86 @@
        import cisco-semver
        location  [ NETCONF ]
        status    selected,downloaded
+       
+  #### i - Building the NED:     
+       cisco@ncs# netconf-ned-builder project cisco-iosxr 7.5 build-ned
+       cisco@ncs#
+  #### j - Verifying Build:     
+       cisco@ncs# show netconf-ned-builder project cisco-iosxr 7.5 build-status
+       build-status success
+       cisco@ncs#
+  #### k - Verifying the creation of the new NED:    
+       cisco@ncs#exit
+       [cisco@centos ~]$ ls /var/opt/ncs/state/netconf-ned-builder
+       cache  cisco-iosxr-nc-7.5
+       [cisco@centos ~]$
+  #### l - Installing the new NED:    
+       [cisco@centos ~]$ cp -avr /var/opt/ncs/state/netconf-ned-builder/cisco-iosxr-nc-7.5/ /var/opt/ncs/packages/
+  #### m - Updating the CDB schema: 
+       [cisco@centos ~]$ ncs_cli -C
+       cisco@ncs# packages reload
+       cisco@ncs# packages reload
+       >>> System upgrade is starting.
+       >>> Sessions in configure mode must exit to operational mode.
+       >>> No configuration changes can be performed until upgrade has completed.
+       >>> System upgrade has completed successfully.
+       reload-result {
+           package cisco-iosxr-nc-7.5
+           result true
+       }
+       cisco@ncs#
+       
+  #### n - Migrating the device to the new NED:
+         cisco@ncs# devices device asr9k1 migrate new-ned-id cisco-iosxr-nc-7.5
+         cisco@ncs#
+  
+  #### o - Testing device connectivity and sync-from:
+       cisco@ncs# devices device asr9k1 connect
+       result true
+       info (cisco) Connected to asr9k1 - 198.18.1.2:830
+       cisco@ncs# devices device asr9k1 sync-from
+       result true
+       cisco@ncs#
+       
+  #### p - Checking if the CDB is populated with device config:
+       cisco@ncs# show running-config devices device asr9k1 config interface-configurations interface-configuration act GigabitEthernet0/0/0/0
+       devices device asr9k1
+        config
+         interface-configurations interface-configuration act GigabitEthernet0/0/0/0
+          shutdown
+         !
+        !
+       !
+   #### p - Testing configuring the device using the new NED:
+       cisco@ncs(config)# devices device asr9k1 config interface-configurations interface-configuration act GigabitEthernet0/0/0/0 description DEVWKS-2440
+       cisco@ncs(config-interface-configuration-act/GigabitEthernet0/0/0/0)# commit dry-run outformat native
+       native {
+           device {
+               name asr9k1
+               data <rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
+                         message-id="1">
+                      <edit-config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+                        <target>
+                          <candidate/>
+                        </target>
+                        <test-option>test-then-set</test-option>
+                        <error-option>rollback-on-error</error-option>
+                        <config>
+                          <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+                            <interface-configuration>
+                              <active>act</active>
+                              <interface-name>GigabitEthernet0/0/0/0</interface-name>
+                              <description>DEVWKS-2440</description>
+                            </interface-configuration>
+                          </interface-configurations>
+                        </config>
+                      </edit-config>
+                    </rpc>
+           }
+       }
+       cisco@ncs(config-interface-configuration-act/GigabitEthernet0/0/0/0)#commit
+       Commit complete.
+       cisco@ncs(config-interface-configuration-act/GigabitEthernet0/0/0/0)#
+
+       
+       
