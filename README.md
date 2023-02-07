@@ -128,6 +128,13 @@
        cisco@ncs(config-interface-configuration-act/GigabitEthernet0/0/0/0)#commit
        Commit complete.
        cisco@ncs(config-interface-configuration-act/GigabitEthernet0/0/0/0)#
+       
+  #### c - Verifying config on device:    
+       RP/0/RP0/CPU0:XR-9k#show running-config interface GigabitEthernet 0/0/0/0
+       interface GigabitEthernet0/0/0/0
+        description DEVWKS-2440
+        shutdown
+       !
 
        
        
