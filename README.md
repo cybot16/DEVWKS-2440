@@ -186,3 +186,6 @@
                 </devices>
               </config-template>
        
+#### e - Replacing the service template with the generated template and replace data with variables:
+       [cisco@centos ]$ vi /var/opt/ncs/packages/interface-config-nc/src/yang/interface-config-nc.yang
+       
