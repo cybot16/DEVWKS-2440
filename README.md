@@ -136,5 +136,53 @@
         shutdown
        !
 
+
+## 3 - Create a service 
+#### a - Go to packages directory:
+       [cisco@centos ~]$ cd /var/opt/ncs/packages/
+#### b - Make a new service package:
+       [cisco@centos packages]$ ncs-make-package --service-skeleton python-and-template interface-config-nc
+#### c - Generating the config template:
+       <config>
+         <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+           <interface-configuration>
+             <active>act</active>
+             <interface-name>GigabitEthernet0/0/0/0</interface-name>
+             <ipv4-network xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-io-cfg">
+               <addresses>
+                 <primary>
+                   <address>10.0.0.1</address>
+                   <netmask>255.255.255.252</netmask>
+                 </primary>
+               </addresses>
+             </ipv4-network>
+           </interface-configuration>
+         </interface-configurations>
+       </config>
+#### d - Replacing the service template with the generated template and replace data with variables:
+       [cisco@centos templates]$ vi /var/opt/ncs/packages/interface-config-nc/templates/interface-config-nc-template.xml
        
+             <config-template xmlns="http://tail-f.com/ns/config/1.0">
+                <devices xmlns="http://tail-f.com/ns/ncs">
+                  <device>
+                    <name>{/device}</name>
+                    <config>
+                     <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+                      <interface-configuration>
+                      <active>act</active>
+                      <interface-name>{/interface-name}</interface-name>
+                      <ipv4-network xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-io-cfg">
+                        <addresses>
+                         <primary>
+                          <address>{/ip-address}</address>
+                          <netmask>{/netmask}</netmask>
+                         </primary>
+                        </addresses>
+                       </ipv4-network>
+                      </interface-configuration>
+                     </interface-configurations>
+                    </config>
+                  </device>
+                </devices>
+              </config-template>
        
