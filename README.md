@@ -162,28 +162,29 @@
 #### d - Replacing the service template with the generated template and replace data with variables:
        [cisco@centos templates]$ vi /var/opt/ncs/packages/interface-config-nc/templates/interface-config-nc-template.xml
        
-             <config-template xmlns="http://tail-f.com/ns/config/1.0">
-                <devices xmlns="http://tail-f.com/ns/ncs">
-                  <device>
-                    <name>{/device}</name>
-                    <config>
-                     <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
-                      <interface-configuration>
-                      <active>act</active>
-                      <interface-name>{/interface-name}</interface-name>
-                      <ipv4-network xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-io-cfg">
-                        <addresses>
-                         <primary>
-                          <address>{/ip-address}</address>
-                          <netmask>{/netmask}</netmask>
-                         </primary>
-                        </addresses>
-                       </ipv4-network>
-                      </interface-configuration>
-                     </interface-configurations>
-                    </config>
-                  </device>
-                </devices>
+       <config-template xmlns="http://tail-f.com/ns/config/1.0" servicepoint="interface-config-nc-servicepoint">
+              <config-template xmlns="http://tail-f.com/ns/config/1.0" servicepoint="interface-config-nc-servicepoint">
+                  <devices xmlns="http://tail-f.com/ns/ncs">
+                      <device>
+                      <name>{/device}</name>
+                      <config>
+                          <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+                              <interface-configuration>
+                                  <active>act</active>
+                                  <interface-name>{/interface}</interface-name>
+                                  <ipv4-network xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-io-cfg">
+                                      <addresses>
+                                          <primary>
+                                              <address>{/ip-address}</address>
+                                              <netmask>{/ip-mask}</netmask>
+                                          </primary>
+                                      </addresses>
+                                  </ipv4-network>
+                              </interface-configuration>
+                          </interface-configurations>
+                      </config>
+                      </device>
+                  </devices>
               </config-template>
        
 #### e - Replacing the service template with the generated template and replace data with variables:
@@ -215,7 +216,13 @@
            list interface-config-nc {
              description "Interface configuration service";
 
-             key interface;
+             key "device interface";
+             leaf device {
+               description "Device Name";
+               type leafref {
+                   path "/ncs:devices/ncs:device/ncs:name";
+               }
+             }
              leaf interface {
                description "Device interface";
                type string;
@@ -259,3 +266,9 @@
            result true
        }
        cisco@ncs#
+       
+ 
+#### g - Creating a service instance:
+       cisco@ncs# config terminal
+       Entering configuration mode terminal
+       cisco@ncs(config)# interface-config-nc GigabitEthernet0/0/0/0 ip-address 10.0.0.1 ip-mask 255.255.255.252
