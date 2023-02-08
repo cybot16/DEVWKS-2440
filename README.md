@@ -212,7 +212,7 @@
              description
                "Initial revision.";
            }
-
+           augment /ncs:services {
            list interface-config-nc {
              description "Interface configuration service";
 
@@ -240,6 +240,7 @@
                type inet:ipv4-address;
              }
            }
+         }
          }
 
 #### f - Recompiling and updating the cdb schema:
@@ -271,4 +272,44 @@
 #### g - Creating a service instance:
        cisco@ncs# config terminal
        Entering configuration mode terminal
-       cisco@ncs(config)# interface-config-nc GigabitEthernet0/0/0/0 ip-address 10.0.0.1 ip-mask 255.255.255.252
+       cisco@ncs(config)# services interface-config-nc asr9k1 GigabitEthernet0/0/0/0 ip-address 10.0.0.2 ip-mask 255.255.255.252
+       cisco@ncs(config-interface-config-nc-asr9k1/GigabitEthernet0/0/0/0)# commit dry-run outformat native
+       native {
+           device {
+               name asr9k1
+               data <rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
+                         message-id="1">
+                      <edit-config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+                        <target>
+                          <candidate/>
+                        </target>
+                        <test-option>test-then-set</test-option>
+                        <error-option>rollback-on-error</error-option>
+                        <config>
+                          <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+                            <interface-configuration>
+                              <active>act</active>
+                              <interface-name>GigabitEthernet0/0/0/0</interface-name>
+                              <ipv4-network xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-io-cfg">
+                                <addresses>
+                                  <primary>
+                                    <netmask>255.255.255.252</netmask>
+                                    <address>10.0.0.2</address>
+                                  </primary>
+                                </addresses>
+                              </ipv4-network>
+                            </interface-configuration>
+                          </interface-configurations>
+                        </config>
+                      </edit-config>
+                    </rpc>
+           }
+       }
+       cisco@ncs(config-interface-config-nc-asr9k1/GigabitEthernet0/0/0/0)# commit
+       Commit complete.
+       cisco@ncs(config-interface-config-nc-asr9k1/GigabitEthernet0/0/0/0)#
+
+#### h - Checking the device config:
+       cisco@ncs# config terminal
+       Entering configuration mode terminal
+       cisco@ncs(config)# services interface-config-nc asr9k1 GigabitEthernet0/0/0/0 ip-address 10.0.0.2 ip-mask 255.255.255.252
