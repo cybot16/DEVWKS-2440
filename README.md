@@ -234,3 +234,28 @@
              }
            }
          }
+
+#### f - Recompiling and updating the cdb schema:
+       [cisco@centos src]$ make clean all
+       rm -rf ../load-dir
+       mkdir -p ../load-dir
+       /opt/ncs/current/bin/ncsc `ls interface-config-nc-ann.yang  > /dev/null 2>&1 && echo "-a interface-config-nc-ann.yang"` \
+              --fail-on-warnings \
+               \
+              -c -o ../load-dir/interface-config-nc.fxs yang/interface-config-nc.yang
+              
+       [cisco@centos templates]$ ncs_cli -C
+       cisco@ncs# packages reload
+       >>> System upgrade is starting.
+       >>> Sessions in configure mode must exit to operational mode.
+       >>> No configuration changes can be performed until upgrade has completed.
+       >>> System upgrade has completed successfully.
+       reload-result {
+           package cisco-iosxr-nc-7.5
+           result true
+       }
+       reload-result {
+           package interface-config-nc
+           result true
+       }
+       cisco@ncs#
