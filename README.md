@@ -141,7 +141,7 @@
 #### a - Go to packages directory:
        [cisco@centos ~]$ cd /var/opt/ncs/packages/
 #### b - Make a new service package:
-       [cisco@centos packages]$ ncs-make-package --service-skeleton python-and-template interface-config-nc
+       [cisco@centos packages]$ ncs-make-package --service-skeleton template interface-config-nc
 #### c - Generating the config template:
        <config>
          <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
@@ -189,3 +189,48 @@
 #### e - Replacing the service template with the generated template and replace data with variables:
        [cisco@centos ]$ vi /var/opt/ncs/packages/interface-config-nc/src/yang/interface-config-nc.yang
        
+         module interface-config-nc {
+
+           namespace "http://example.com/interface-config-nc";
+           prefix interface-config-nc;
+
+           import ietf-inet-types {
+             prefix inet;
+           }
+           import tailf-common {
+             prefix tailf;
+           }
+           import tailf-ncs {
+             prefix ncs;
+           }
+
+           description
+             "Interface configuration service using netconf";
+
+           revision 2022-02-08 {
+             description
+               "Initial revision.";
+           }
+
+           list interface-config-nc {
+             description "Interface configuration service";
+
+             key interface;
+             leaf interface {
+               description "Device interface";
+               type string;
+             }
+
+             uses ncs:service-data;
+             ncs:servicepoint interface-config-nc-servicepoint;
+
+             leaf ip-address {
+               description "Interface IP address";
+               type inet:ipv4-address;
+             }
+             leaf ip-mask {
+               description "Interface IP mask";
+               type inet:ipv4-address;
+             }
+           }
+         }
